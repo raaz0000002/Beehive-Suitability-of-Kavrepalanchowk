@@ -13,14 +13,6 @@ def classify(score, breaks=BREAKS):
 def weighted_kappa(a, b, k=5):
     """Quadratic-weighted Cohen's kappa between two class arrays (0..k-1)."""
     cm = np.bincount(a.astype(np.int64) * k + b, minlength=k * k).reshape(k, k).astype(float)
-    n = cm.sum()
-    if n == 0:
-        return 1.0
-    i, j = np.indices((k, k))
-    W = (i - j) ** 2 / (k - 1) ** 2
+    n = cm.sum(); i, j = np.indices((k, k)); W = (i - j) ** 2 / (k - 1) ** 2
     E = np.outer(cm.sum(1), cm.sum(0)) / n
-    denom = (W * E).sum()
-    if denom == 0:
-        return 1.0 if np.array_equal(a, b) else 0.0
-    return 1 - (W * cm).sum() / denom
-
+    return 1 - (W * cm).sum() / (W * E).sum()

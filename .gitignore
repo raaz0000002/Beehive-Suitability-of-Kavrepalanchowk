@@ -8,3 +8,6 @@ results/model_comparison/
 results/figures/
 results/pooled_weights.csv
 results/verification_report.txt
+
+# large rasters go to Zenodo, not git
+raw/raw_*.tif

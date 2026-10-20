@@ -25,8 +25,8 @@ def test_range_and_monotonic(name):
     rng = np.random.default_rng(0)
     X = stack(*(rng.uniform(1, 9, 1000) for _ in W))
     s = MODELS[name](X, W)
-    X2 = dict(X)
-    X2["A"] = np.minimum(X["A"] + 1, 9)
+    assert s.min() >= 1 - 1e-12 and s.max() <= 9 + 1e-12
+    X2 = dict(X); X2["A"] = np.minimum(X["A"] + 1, 9)
     assert np.all(MODELS[name](X2, W) >= s - 1e-12)
 
 
@@ -39,11 +39,8 @@ def test_wpm_hand_value():
 
 
 def test_topsis_hand_value():
-    x = np.array([9, 1, 5.0])
-    w = np.array([0.5, 0.3, 0.2])
-    v = w * (x - 1) / 8
-    dp = np.sqrt(((w - v) ** 2).sum())
-    dm = np.sqrt((v ** 2).sum())
+    x = np.array([9, 1, 5.0]); w = np.array([0.5, 0.3, 0.2]); v = w * (x - 1) / 8
+    dp, dm = np.sqrt(((w - v) ** 2).sum()), np.sqrt((v ** 2).sum())
     assert topsis(stack(*[[a] for a in x]), W)[0] == pytest.approx(1 + 8 * dm / (dp + dm))
 
 

@@ -1,5 +1,5 @@
 {
- "_note": "Pooled literature weights (scripts/01_pool_weights.py). lo/hi = 90% bootstrap interval. Paths are relative to this file. TEMP = WorldClim air temperature; PREC = WorldClim annual precipitation 1960-1990 (PREC_CHIRPS.tif = CHIRPS 2020-2024, sensitivity only); WATER = distance to OpenStreetMap waterways (robustness run). NDVI and LST are used only in sensitivity scenarios.",
+ "_note": "Robustness run: as config/weights_main.json but WATER = distance to OpenStreetMap waterways instead of MERIT Hydro streams. TEMP and PREC = 1991-2020 climate normals (gee/05_climate_1991_2020.js). NDVI and LST are used only in scenarios.",
  "criteria": {
   "LULC": {
    "file": "../data/standardised/LULC.tif",
@@ -8,13 +8,13 @@
    "hi": 0.423
   },
   "TEMP": {
-   "file": "../data/standardised/AIRT.tif",
+   "file": "../data/standardised/AIRT_1991_2020.tif",
    "weight": 0.135,
    "lo": 0.086,
    "hi": 0.202
   },
   "PREC": {
-   "file": "../data/standardised/PREC.tif",
+   "file": "../data/standardised/PREC_1991_2020.tif",
    "weight": 0.13,
    "lo": 0.101,
    "hi": 0.159
@@ -70,7 +70,7 @@
    "ASPECT": 0.071,
    "SLOPE": 0.055
   },
-  "Previous manuscript weights (with NDVI)": {
+  "Author AHP weights (with NDVI and LST)": {
    "LULC": 0.3164,
    "NDVI": 0.2263,
    "PREC": 0.1023,

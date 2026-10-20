@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """Prepare layers for rerun_model.py.
 
-  airtemp : WorldClim 2.1 monthly mean air temperature -> aligned 10 m grid -> 1-9 scores
+  climate : two-band climate GeoTIFF exported by gee/05_climate_1991_2020.js (band 1 = flow-season mean air
+            temperature, degC; band 2 = annual precipitation, mm) on its native grid -> bilinear onto the 10 m
+            template grid -> raw rasters and 1-9 scores (nine equal intervals over the range inside the common mask)
+            python3 scripts/02_prep_layers.py climate --src raw/clim_1991_2020_main_wcgrid.tif \
+                --template data/standardised/LULC.tif --mask-config config/weights_main.json --tag 1991_2020 \
+                --out-dir data/standardised --raw-dir raw
+  airtemp : WorldClim monthly mean air temperature files -> aligned 10 m grid -> 1-9 scores
             python3 prep_layers.py airtemp --wc-dir wc2.1_30s_tavg --template rasters/LULC.tif --out rasters/AIRT.tif
   align   : put any raster on the template grid (nearest for categorical, bilinear for continuous)
             python3 prep_layers.py align --src old/slope_score.tif --template rasters/LULC.tif --out rasters/SLOPE.tif --categorical
@@ -74,6 +80,61 @@ def airtemp(a):
         print(f"  {i+1} = {edges[i]:.3f} to {'<' if i < 8 else ''}{edges[i+1]:.3f}")
 
 
+def common_mask(config_path, skip):
+    """Cells valid (> 0) in every criterion and scenario layer of a weights config, except the layers in skip."""
+    import json
+    cfg = json.load(open(config_path)); root = os.path.dirname(os.path.abspath(config_path))
+    layers = dict(cfg["criteria"]); layers.update(cfg.get("scenario_layers", {}))
+    m = None
+    for k, v in layers.items():
+        f = os.path.normpath(os.path.join(root, v["file"]))
+        if k in skip or not os.path.exists(f):
+            continue
+        with rasterio.open(f) as r:
+            x = r.read(1)
+            mk = (x > 0) & (x != (r.nodata if r.nodata is not None else 0))
+        m = mk if m is None else m & mk
+    return m
+
+
+def nine(x, valid):
+    v = x[valid]; lo, hi = float(v.min()), float(v.max())
+    edges = np.linspace(lo, hi, 10)
+    out = np.digitize(x, edges[1:-1], right=False).astype("float32") + 1
+    out[~valid] = np.nan
+    return out, edges
+
+
+def climate(a):
+    prof, bounds, crs, tr, shape, tvalid = template(a.template)
+    mask = common_mask(a.mask_config, skip={"TEMP", "PREC"} | {k for k in a.skip.split(",") if k})
+    if mask is None:
+        mask = tvalid
+    os.makedirs(a.out_dir, exist_ok=True); os.makedirs(a.raw_dir, exist_ok=True)
+    with rasterio.open(a.src) as s:
+        if s.count < 2:
+            sys.exit(f"{a.src}: expected 2 bands (air temperature, precipitation)")
+        for band, key, unit in [(1, "AIRT", "degC"), (2, "PREC", "mm")]:
+            out = np.full(shape, np.nan, "float32")
+            src = s.read(band).astype("float32")
+            if s.nodata is not None:
+                src[src == s.nodata] = np.nan
+            reproject(src, out, src_transform=s.transform, src_crs=s.crs, src_nodata=np.nan,
+                      dst_transform=tr, dst_crs=crs, dst_nodata=np.nan, resampling=Resampling.bilinear)
+            valid = mask & ~np.isnan(out)
+            if valid.sum() < mask.sum():
+                print(f"WARNING {key}: {int(mask.sum() - valid.sum())} mask cells have no climate value")
+            raw = np.where(mask, out, np.nan)
+            sc, edges = nine(out, valid)
+            write(os.path.join(a.raw_dir, f"raw_{key}_{a.tag}_{unit}.tif"), raw, prof)
+            write(os.path.join(a.out_dir, f"{key}_{a.tag}.tif"), sc, prof)   # float32, NoData -9999, like the other score layers
+            v = out[valid]
+            print(f"{key}_{a.tag}: {v.min():.3f}-{v.max():.3f} {unit} over {v.size} cells "
+                  f"(mean {v.mean():.2f}, SD {v.std():.2f}, median {np.median(v):.2f})")
+            for i in range(9):
+                print(f"  {i+1} = {edges[i]:.3f} to {'<' if i < 8 else ''}{edges[i+1]:.3f}")
+
+
 def align(a):
     prof, bounds, crs, tr, shape, valid = template(a.template)
     out = warp(a.src, prof, crs, tr, shape, Resampling.nearest if a.categorical else Resampling.bilinear)
@@ -84,16 +145,13 @@ def align(a):
 def points(a):
     import csv
     from rasterio.warp import transform as tf
-    with open(a.src, newline="", encoding="utf-8-sig") as f:
-        rows = list(csv.DictReader(f))
-    lat = [float(r["lat"]) for r in rows]
-    lon = [float(r["lon"]) for r in rows]
+    rows = list(csv.DictReader(open(a.src, newline="", encoding="utf-8-sig")))
+    lat = [float(r["lat"]) for r in rows]; lon = [float(r["lon"]) for r in rows]
     if not all(26 < y < 31 and 80 < x < 89 for x, y in zip(lon, lat)):
         sys.exit("Some points are outside Nepal: check that lat and lon are decimal degrees and not swapped")
     xs, ys = tf("EPSG:4326", "EPSG:32645", lon, lat)
-    with open(a.out, "w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
-        w.writerow(["id", "x", "y"])
+    with open(a.out, "w", newline="") as f:
+        w = csv.writer(f); w.writerow(["id", "x", "y"])
         for r, x, y in zip(rows, xs, ys):
             w.writerow([r["id"], round(x, 2), round(y, 2)])
     print(f"{len(rows)} points written to {a.out} (EPSG:32645)")
@@ -133,9 +191,13 @@ ap = argparse.ArgumentParser(); sub = ap.add_subparsers(dest="cmd", required=Tru
 p = sub.add_parser("airtemp"); p.add_argument("--wc-dir", required=True); p.add_argument("--template", required=True)
 p.add_argument("--out", required=True); p.add_argument("--months", default="3,4,5,9,10,11",
                help="foraging months; default = the main honey flows in Neupane et al. 2024")
+p = sub.add_parser("climate"); p.add_argument("--src", required=True); p.add_argument("--template", required=True)
+p.add_argument("--mask-config", required=True); p.add_argument("--tag", required=True)
+p.add_argument("--out-dir", default="data/standardised"); p.add_argument("--raw-dir", default="raw")
+p.add_argument("--skip", default="", help="comma-separated config keys left out of the mask (e.g. layers not built yet)")
 p = sub.add_parser("align"); p.add_argument("--src", required=True); p.add_argument("--template", required=True)
 p.add_argument("--out", required=True); p.add_argument("--categorical", action="store_true")
 p = sub.add_parser("points"); p.add_argument("--src", required=True); p.add_argument("--out", required=True)
 p = sub.add_parser("score"); p.add_argument("--src", required=True); p.add_argument("--mask-dir", required=True); p.add_argument("--out", required=True)
 p = sub.add_parser("check"); p.add_argument("--dir", required=True)
-a = ap.parse_args(); {"airtemp": airtemp, "align": align, "points": points, "score": score, "check": check}[a.cmd](a)
+a = ap.parse_args(); {"climate": climate, "airtemp": airtemp, "align": align, "points": points, "score": score, "check": check}[a.cmd](a)

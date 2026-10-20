@@ -4,12 +4,14 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 python scripts/01_pool_weights.py
-python scripts/03_run_main.py --config config/weights_main_merit.json --points data/points/apiaries_utm45n.csv --out results/main
-python scripts/04_compare_models.py --config config/weights_main_merit.json --main-score results/main/score.tif \
+python scripts/03_run_main.py --config config/weights_main.json --points data/points/apiaries_utm45n.csv --out results/main
+python scripts/04_compare_models.py --config config/weights_main.json --main-score results/main/score.tif \
        --points data/points/apiaries_utm45n.csv --out results/model_comparison
+python scripts/07_point_context.py --score results/main/score.tif --lulc data/standardised/LULC.tif \
+       --points data/points/apiaries_utm45n.csv --radius 500 --out results/main/points_500m.csv
 python scripts/03_run_main.py --config config/weights_osm_water.json --points data/points/apiaries_utm45n.csv --out results/osm_water
 python scripts/05_make_figures.py --std data/standardised --run results/main --models results/model_comparison \
-       --config config/weights_main_merit.json --out results/figures
+       --config config/weights_main.json --out results/figures
 python scripts/05b_make_flowchart.py results/figures
 python -m pytest -q tests
 python scripts/06_verify.py

@@ -7,7 +7,7 @@ the code, per-pixel stability, an exploratory overlay of known apiary locations,
 manifest that records input hashes and every number the manuscript reports.
 
 Inputs
-  --config   weights.json (criterion -> {file, weight, lo, hi}); see weights_literature.json
+  --config   weights.json (criterion -> {file, weight, lo, hi}); see config/weights_main.json
   --points   optional CSV with columns id,x,y (coordinates in the raster CRS)
   --out      output folder
 All rasters must already be standardised to 1-9 (higher = more suitable) on the same grid.
@@ -48,24 +48,16 @@ def oat(base, k, d):
 
 
 def roc(base):
-    order = sorted(base, key=lambda k: -base[k])
-    n = len(order)
+    order = sorted(base, key=lambda k: -base[k]); n = len(order)
     return {k: sum(1 / j for j in range(i, n + 1)) / n for i, k in enumerate(order, 1)}
 
 
 def wkappa(a, b, k=5):
     """Quadratic-weighted Cohen's kappa between two class arrays (0..k-1)."""
     cm = np.bincount(a * k + b, minlength=k * k).reshape(k, k).astype(float)
-    n = cm.sum()
-    if n == 0:
-        return 1.0
-    i, j = np.indices((k, k))
-    W = (i - j) ** 2 / (k - 1) ** 2
+    n = cm.sum(); i, j = np.indices((k, k)); W = (i - j) ** 2 / (k - 1) ** 2
     E = np.outer(cm.sum(1), cm.sum(0)) / n
-    denom = (W * E).sum()
-    if denom == 0:
-        return 1.0 if np.array_equal(a, b) else 0.0
-    return 1 - (W * cm).sum() / denom
+    return 1 - (W * cm).sum() / (W * E).sum()
 
 
 def main():
@@ -76,8 +68,7 @@ def main():
     ap.add_argument("--sample", type=int, default=200000, help="pixels sampled for Spearman r")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
-    with open(a.config, "r", encoding="utf-8") as f:
-        cfg = json.load(f)
+    cfg = json.load(open(a.config))
     root = os.path.dirname(os.path.abspath(a.config))
     crit = cfg["criteria"]
     extra = cfg.get("scenario_layers", {})        # optional layers used only in scenarios (e.g. NDVI, air temperature)
@@ -126,6 +117,8 @@ def main():
             sc.append((f"{k} {d:+.0%}", oat(base, k, d)))
     for k in base:
         sc.append((f"Remove {k}", norm({j: (0 if j == k else base[j]) for j in base})))
+    for name, ks in cfg.get("group_removals", {}).items():   # e.g. both climate criteria together
+        sc.append((name, norm({j: (0 if j in ks else base[j]) for j in base})))
     for k, v in crit.items():
         for bound in ("lo", "hi"):
             if bound in v:
@@ -135,8 +128,13 @@ def main():
     sc.append(("Rank-order centroid (ROC)", roc(base)))
     for name, spec in cfg.get("extra_scenarios", {}).items():
         sc.append((name, norm(spec)))
-    for name, spec in cfg.get("swap_scenarios", {}).items():   # e.g. use air temperature in place of LST
-        w = dict(base); w[spec["use"]] = w.pop(spec["replace"]); sc.append((name, w))
+    for name, spec in cfg.get("swap_scenarios", {}).items():   # another layer in place of a criterion, same weight
+        rep, use = spec["replace"], spec["use"]
+        rep, use = ([rep], [use]) if isinstance(rep, str) else (rep, use)
+        w = dict(base)
+        for r_, u_ in zip(rep, use):
+            w[u_] = w.pop(r_)
+        sc.append((name, w))
 
     rng = np.random.default_rng(42)
     samp = rng.choice(n, min(a.sample, n), replace=False)
@@ -153,27 +151,23 @@ def main():
                          changed_km2=round(ch * area, 2), changed_pct=round(100 * ch, 2),
                          high_plus_very_high_pct=round(np.isin(C, [3, 4]).mean() * 100, 2)))
     N = len(sc)
-    with open(os.path.join(a.out, "scenarios.csv"), "w", newline="", encoding="utf-8") as f:
-        wr = csv.DictWriter(f, rows[0].keys())
-        wr.writeheader()
-        wr.writerows(rows)
+    with open(os.path.join(a.out, "scenarios.csv"), "w", newline="") as f:
+        wr = csv.DictWriter(f, rows[0].keys()); wr.writeheader(); wr.writerows(rows)
 
     # ---- class areas and alternative classifications
     def shares(C):
         cnt = np.bincount(C, minlength=5)
         return [(CLASSES[i], int(cnt[i]), round(cnt[i] * cell_km2, 2), round(100 * cnt[i] / n, 2)) for i in range(5)]
-    with open(os.path.join(a.out, "class_areas.csv"), "w", newline="", encoding="utf-8") as f:
-        wr = csv.writer(f)
-        wr.writerow(["class", "score_range", "pixels", "area_km2", "area_pct"])
+    with open(os.path.join(a.out, "class_areas.csv"), "w", newline="") as f:
+        wr = csv.writer(f); wr.writerow(["class", "score_range", "pixels", "area_km2", "area_pct"])
         for i, (c, p, km, pc) in enumerate(shares(C0)):
             wr.writerow([c, f"{BREAKS[i]}-{BREAKS[i+1]}", p, km, pc])
     lo_, hi_ = float(S0.min()), float(S0.max())
     alt = {"Fixed 1-9 equal interval (main)": BREAKS,
            "Observed-range equal interval": list(np.linspace(lo_, hi_, 6)),
            "Quantile (quintiles)": [lo_] + list(np.quantile(S0, [0.2, 0.4, 0.6, 0.8])) + [hi_]}
-    with open(os.path.join(a.out, "classification_methods.csv"), "w", newline="", encoding="utf-8") as f:
-        wr = csv.writer(f)
-        wr.writerow(["method", "breaks", "high_plus_very_high_pct", "agreement_with_main_pct", "weighted_kappa"])
+    with open(os.path.join(a.out, "classification_methods.csv"), "w", newline="") as f:
+        wr = csv.writer(f); wr.writerow(["method", "breaks", "high_plus_very_high_pct", "agreement_with_main_pct", "weighted_kappa"])
         for m, b in alt.items():
             C = classify(S0, b)
             wr.writerow([m, " / ".join(f"{x:.4f}" for x in b), round(np.isin(C, [3, 4]).mean() * 100, 2),
@@ -181,11 +175,8 @@ def main():
 
     # ---- rasters
     def put(vec, fill, dtype):
-        out = np.full(shape, fill, dtype)
-        out[mask] = vec
-        return out
-    p = prof.copy()
-    p.update(count=1, compress="deflate")
+        out = np.full(shape, fill, dtype); out[mask] = vec; return out
+    p = prof.copy(); p.update(count=1, compress="deflate")
     sd = np.sqrt(np.maximum(sum_s2 / N - (sum_s / N) ** 2, 0)).astype("float32")
     for nm, vec, dt, nd in [("score.tif", S0, "float64", -9999), ("class.tif", (C0 + 1), "int8", 0),
                             ("stability_pct.tif", (100 * same / N).astype("float32"), "float32", -9999),
@@ -197,9 +188,8 @@ def main():
     # ---- known apiary locations (exploratory comparison, not validation)
     pts_summary = None
     if a.points:
-        full = put(S0, np.nan, "float64")
-        rowsP = []
-        with open(a.points, "r", encoding="utf-8") as f:
+        full = put(S0, np.nan, "float64"); rowsP = []
+        with open(a.points) as f:
             for r in csv.DictReader(f):
                 rr, cc = rasterio.transform.rowcol(tr, float(r["x"]), float(r["y"]))
                 ok = 0 <= rr < shape[0] and 0 <= cc < shape[1] and mask[rr, cc]
@@ -207,10 +197,8 @@ def main():
                 rowsP.append(dict(id=r["id"], x=r["x"], y=r["y"], score=None if s is None else round(s, 4),
                                   cls=None if s is None else CLASSES[int(classify(np.array([s]), BREAKS)[0])],
                                   landscape_percentile=None if s is None else round(100 * (S0 < s).mean(), 1)))
-        with open(os.path.join(a.out, "points.csv"), "w", newline="", encoding="utf-8") as f:
-            wr = csv.DictWriter(f, rowsP[0].keys())
-            wr.writeheader()
-            wr.writerows(rowsP)
+        with open(os.path.join(a.out, "points.csv"), "w", newline="") as f:
+            wr = csv.DictWriter(f, rowsP[0].keys()); wr.writeheader(); wr.writerows(rowsP)
         v = [r for r in rowsP if r["score"] is not None]
         k = sum(r["cls"] in ("High", "Very High") for r in v)
         pts_summary = dict(n_inside=len(v), n_outside=len(rowsP) - len(v), in_high_or_very_high=k,
@@ -225,11 +213,9 @@ def main():
                score=dict(min=round(lo_, 4), max=round(hi_, 4), mean=round(float(S0.mean()), 4), sd=round(float(S0.std()), 4)),
                class_areas=shares(C0), high_plus_very_high_pct=round(hv0, 2),
                scenario_count=N, points=pts_summary)
-    with open(os.path.join(a.out, "manifest.json"), "w", encoding="utf-8") as f:
-        json.dump(man, f, indent=2)
+    json.dump(man, open(os.path.join(a.out, "manifest.json"), "w"), indent=2)
     print(f"cells {n}  area {area:.3f} km2  score {lo_:.4f}-{hi_:.4f}  H+VH {hv0:.2f}%  scenarios {N}")
-    if pts_summary:
-        print("points", pts_summary)
+    if pts_summary: print("points", pts_summary)
 
 
 if __name__ == "__main__":

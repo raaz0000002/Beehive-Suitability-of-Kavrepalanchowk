@@ -1,36 +1,36 @@
 {
- "_note": "Numbers reported in the manuscript (WorldClim precipitation run). scripts/06_verify.py checks a fresh run against them.",
+ "_note": "Numbers reported in the manuscript (1991-2020 climate normals, MERIT Hydro streams). scripts/06_verify.py checks a fresh run against them.",
  "main": {
   "cells": 13926106,
   "area_km2": 1392.611,
-  "score_min": 3.09,
+  "score_min": 3.069,
   "score_max": 8.338,
-  "score_mean": 6.4534,
-  "high_plus_very_high_pct": 87.08,
-  "scenario_count": 78,
+  "score_mean": 6.453,
+  "high_plus_very_high_pct": 86.98,
+  "scenario_count": 81,
   "class_pct": {
    "Very Low": 0.0,
-   "Low": 1.79,
-   "Moderate": 11.13,
-   "High": 80.81,
-   "Very High": 6.26
+   "Low": 1.75,
+   "Moderate": 11.27,
+   "High": 80.63,
+   "Very High": 6.35
   },
   "apiaries_in_high_or_very_high": 2,
   "apiaries_inside": 7
  },
  "models": {
   "WPM": {
-   "high_plus_very_high_pct": 56.73,
-   "agreement_vs_WLC_pct": 57.93,
-   "weighted_kappa_vs_WLC": 0.518
+   "high_plus_very_high_pct": 56.68,
+   "agreement_vs_WLC_pct": 57.9,
+   "weighted_kappa_vs_WLC": 0.519
   },
   "TOPSIS": {
-   "high_plus_very_high_pct": 89.46,
-   "agreement_vs_WLC_pct": 84.24,
-   "weighted_kappa_vs_WLC": 0.747
+   "high_plus_very_high_pct": 89.45,
+   "agreement_vs_WLC_pct": 84.0,
+   "weighted_kappa_vs_WLC": 0.744
   }
  },
- "all_three_models_same_class_pct": 51.65,
+ "all_three_models_same_class_pct": 51.49,
  "wlc_recompute_max_abs_difference": 0.0,
  "wlc_recompute_class_changes": 0,
  "pooled_weights": {
@@ -42,5 +42,23 @@
   "ROAD": 0.074,
   "ASPECT": 0.071,
   "SLOPE": 0.055
+ },
+ "scenarios_changed_pct": {
+  "Remove LULC": 57.45,
+  "Remove TEMP": 16.78,
+  "Remove PREC": 18.63,
+  "Remove both climate criteria (TEMP and PREC)": 31.18,
+  "Equal weights": 35.71,
+  "WorldClim 1960-1990 climate in place of 1991-2020": 0.59,
+  "TerraClimate 1991-2020 (native ~4 km) climate": 7.42
+ },
+ "points_500m": {
+  "1_Mandandeupur": 12.9,
+  "2_Jyamdi": 36.7,
+  "3_Namobuddha": 3.3,
+  "4_Satpane_Krishi_Farm": 77.0,
+  "5_Shree_Bhagwati_Beekeeping_Farmers_Group": 1.6,
+  "6_Sitaram_Furniture_and_Bee_Industry": 1.7,
+  "7_Dhungkharka": 4.0
  }
 }

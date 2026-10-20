@@ -1,8 +1,16 @@
 {
-  "title": "Apiary-site suitability for Apis cerana in Kavrepalanchowk, Nepal: code (WLC, WPM, TOPSIS) v1.0.0",
+  "title": "Mapping relative landscape suitability for Apis cerana beekeeping in Kavrepalanchowk, Nepal: code (WLC, WPM, TOPSIS) v2.0.0",
   "upload_type": "software",
-  "description": "Python package and scripts for a GIS multi-criteria apiary-suitability model with literature-pooled weights, tested with three aggregation models (WLC, weighted product, TOPSIS), an independent recomputation, unit tests and a verification script.",
-  "creators": [{"name": "[Family name, Given name]", "affiliation": "[Affiliation]"}],
+  "description": "Python package and scripts for a GIS multi-criteria landscape-suitability model for Apis cerana beekeeping with literature-pooled weights, 1991-2020 climate normals, three aggregation models (WLC, weighted product, TOPSIS), an independent recomputation, an 81-scenario sensitivity ensemble, unit tests and a verification script.",
+  "creators": [
+    {"name": "Acharya, Rajkumar", "orcid": "0009-0000-8357-228X"},
+    {"name": "Basnet, Utkarsha"},
+    {"name": "Akwemoh, Amos"},
+    {"name": "Familusi, Ife"},
+    {"name": "Adhikari, Shristi"},
+    {"name": "Gyawali, Buddhi", "affiliation": "Kentucky State University"}
+  ],
   "license": "MIT",
-  "keywords": ["apiary suitability", "Apis cerana", "GIS", "MCDA", "WLC", "WPM", "TOPSIS", "Nepal"]
+  "related_identifiers": [{"identifier": "https://zenodo.org/records/23490045", "relation": "isSupplementedBy", "resource_type": "dataset"}],
+  "keywords": ["landscape suitability", "beekeeping", "Apis cerana", "GIS", "MCDA", "WLC", "WPM", "TOPSIS", "Nepal"]
 }

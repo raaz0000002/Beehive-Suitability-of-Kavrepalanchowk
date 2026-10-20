@@ -1,5 +1,5 @@
 {
- "_note": "Pooled literature weights (scripts/01_pool_weights.py). lo/hi = 90% bootstrap interval. Paths are relative to this file. TEMP = WorldClim air temperature; PREC = WorldClim annual precipitation 1960-1990 (PREC_CHIRPS.tif = CHIRPS 2020-2024, sensitivity only); WATER = distance to MERIT Hydro streams (upstream area >= 1 km2). NDVI and LST are used only in sensitivity scenarios.",
+ "_note": "Pooled literature weights (scripts/01_pool_weights.py); lo/hi = 90% bootstrap interval. Paths are relative to this file. TEMP = flow-season (Mar-May, Sep-Nov) mean air temperature and PREC = annual precipitation, both 1991-2020 normals at ~1 km (WorldClim V1 spatial pattern + TerraClimate change 1961-1990 -> 1991-2020; gee/05_climate_1991_2020.js). WATER = distance to MERIT Hydro streams (upstream area >= 1 km2). NDVI, LST and the alternative climate layers are used only in scenarios.",
  "criteria": {
   "LULC": {
    "file": "../data/standardised/LULC.tif",
@@ -8,13 +8,13 @@
    "hi": 0.423
   },
   "TEMP": {
-   "file": "../data/standardised/AIRT.tif",
+   "file": "../data/standardised/AIRT_1991_2020.tif",
    "weight": 0.135,
    "lo": 0.086,
    "hi": 0.202
   },
   "PREC": {
-   "file": "../data/standardised/PREC.tif",
+   "file": "../data/standardised/PREC_1991_2020.tif",
    "weight": 0.13,
    "lo": 0.101,
    "hi": 0.159
@@ -56,6 +56,18 @@
   },
   "LST": {
    "file": "../data/standardised/LST.tif"
+  },
+  "AIRT_WC": {
+   "file": "../data/standardised/AIRT_WC1960_1990.tif"
+  },
+  "PREC_WC": {
+   "file": "../data/standardised/PREC_WC1960_1990.tif"
+  },
+  "AIRT_TC": {
+   "file": "../data/standardised/AIRT_TC1991_2020.tif"
+  },
+  "PREC_TC": {
+   "file": "../data/standardised/PREC_TC1991_2020.tif"
   }
  },
  "extra_scenarios": {
@@ -70,7 +82,7 @@
    "ASPECT": 0.071,
    "SLOPE": 0.055
   },
-  "Previous manuscript weights (with NDVI)": {
+  "Author AHP weights (with NDVI and LST)": {
    "LULC": 0.3164,
    "NDVI": 0.2263,
    "PREC": 0.1023,
@@ -86,6 +98,32 @@
   "MODIS LST in place of air temperature": {
    "replace": "TEMP",
    "use": "LST"
+  },
+  "WorldClim 1960-1990 climate in place of 1991-2020": {
+   "replace": [
+    "TEMP",
+    "PREC"
+   ],
+   "use": [
+    "AIRT_WC",
+    "PREC_WC"
+   ]
+  },
+  "TerraClimate 1991-2020 (native ~4 km) climate": {
+   "replace": [
+    "TEMP",
+    "PREC"
+   ],
+   "use": [
+    "AIRT_TC",
+    "PREC_TC"
+   ]
   }
+ },
+ "group_removals": {
+  "Remove both climate criteria (TEMP and PREC)": [
+   "TEMP",
+   "PREC"
+  ]
  }
 }

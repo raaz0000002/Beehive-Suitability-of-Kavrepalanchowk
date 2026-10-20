@@ -1,0 +1,91 @@
+{
+ "_note": "Pooled literature weights (scripts/01_pool_weights.py). lo/hi = 90% bootstrap interval. Paths are relative to this file. TEMP = WorldClim air temperature; PREC = WorldClim annual precipitation 1960-1990 (PREC_CHIRPS.tif = CHIRPS 2020-2024, sensitivity only); WATER = distance to OpenStreetMap waterways (robustness run). NDVI and LST are used only in sensitivity scenarios.",
+ "criteria": {
+  "LULC": {
+   "file": "../data/standardised/LULC.tif",
+   "weight": 0.36,
+   "lo": 0.291,
+   "hi": 0.423
+  },
+  "TEMP": {
+   "file": "../data/standardised/AIRT.tif",
+   "weight": 0.135,
+   "lo": 0.086,
+   "hi": 0.202
+  },
+  "PREC": {
+   "file": "../data/standardised/PREC.tif",
+   "weight": 0.13,
+   "lo": 0.101,
+   "hi": 0.159
+  },
+  "WATER": {
+   "file": "../data/standardised/WATER_OSM.tif",
+   "weight": 0.099,
+   "lo": 0.072,
+   "hi": 0.128
+  },
+  "ELEV": {
+   "file": "../data/standardised/ELEV.tif",
+   "weight": 0.076,
+   "lo": 0.057,
+   "hi": 0.09
+  },
+  "ROAD": {
+   "file": "../data/standardised/ROAD.tif",
+   "weight": 0.074,
+   "lo": 0.05,
+   "hi": 0.106
+  },
+  "ASPECT": {
+   "file": "../data/standardised/ASPECT.tif",
+   "weight": 0.071,
+   "lo": 0.039,
+   "hi": 0.116
+  },
+  "SLOPE": {
+   "file": "../data/standardised/SLOPE.tif",
+   "weight": 0.055,
+   "lo": 0.037,
+   "hi": 0.082
+  }
+ },
+ "scenario_layers": {
+  "NDVI": {
+   "file": "../data/standardised/NDVI.tif"
+  },
+  "LST": {
+   "file": "../data/standardised/LST.tif"
+  }
+ },
+ "extra_scenarios": {
+  "Vegetation weight split LULC/NDVI 50:50": {
+   "LULC": 0.1805,
+   "NDVI": 0.1805,
+   "TEMP": 0.135,
+   "PREC": 0.13,
+   "WATER": 0.099,
+   "ELEV": 0.076,
+   "ROAD": 0.074,
+   "ASPECT": 0.071,
+   "SLOPE": 0.055
+  },
+  "Previous manuscript weights (with NDVI)": {
+   "LULC": 0.3164,
+   "NDVI": 0.2263,
+   "PREC": 0.1023,
+   "WATER": 0.0721,
+   "ELEV": 0.0522,
+   "SLOPE": 0.0382,
+   "ASPECT": 0.0273,
+   "ROAD": 0.0204,
+   "LST": 0.1448
+  }
+ },
+ "swap_scenarios": {
+  "MODIS LST in place of air temperature": {
+   "replace": "TEMP",
+   "use": "LST"
+  }
+ }
+}

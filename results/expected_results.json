@@ -1,0 +1,46 @@
+{
+ "_note": "Numbers reported in the manuscript (WorldClim precipitation run). scripts/06_verify.py checks a fresh run against them.",
+ "main": {
+  "cells": 13926106,
+  "area_km2": 1392.611,
+  "score_min": 3.09,
+  "score_max": 8.338,
+  "score_mean": 6.4534,
+  "high_plus_very_high_pct": 87.08,
+  "scenario_count": 78,
+  "class_pct": {
+   "Very Low": 0.0,
+   "Low": 1.79,
+   "Moderate": 11.13,
+   "High": 80.81,
+   "Very High": 6.26
+  },
+  "apiaries_in_high_or_very_high": 2,
+  "apiaries_inside": 7
+ },
+ "models": {
+  "WPM": {
+   "high_plus_very_high_pct": 56.73,
+   "agreement_vs_WLC_pct": 57.93,
+   "weighted_kappa_vs_WLC": 0.518
+  },
+  "TOPSIS": {
+   "high_plus_very_high_pct": 89.46,
+   "agreement_vs_WLC_pct": 84.24,
+   "weighted_kappa_vs_WLC": 0.747
+  }
+ },
+ "all_three_models_same_class_pct": 51.65,
+ "wlc_recompute_max_abs_difference": 0.0,
+ "wlc_recompute_class_changes": 0,
+ "pooled_weights": {
+  "LULC": 0.36,
+  "TEMP": 0.135,
+  "PREC": 0.13,
+  "WATER": 0.099,
+  "ELEV": 0.076,
+  "ROAD": 0.074,
+  "ASPECT": 0.071,
+  "SLOPE": 0.055
+ }
+}

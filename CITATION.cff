@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite the paper and the Zenodo archive."
+title: "Apiary-site suitability for Apis cerana in Kavrepalanchowk, Nepal: code and data"
+version: 1.0.0
+date-released: "2026-10-14"
+license: MIT
+repository-code: "https://github.com/raaz0000002/Beehive-Suitability-of-Kavrepalanchowk"
+doi: "[Zenodo DOI]"
+authors:
+  - family-names: "[Family name]"
+    given-names: "[Given name]"
+    affiliation: "[Affiliation]"
+keywords: [apiary suitability, Apis cerana, GIS, MCDA, WLC, WPM, TOPSIS, Nepal]

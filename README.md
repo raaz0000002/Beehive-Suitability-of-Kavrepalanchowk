@@ -1,87 +1,72 @@
-# AHP Beehive Suitability Mapping — Kavrepalanchowk, Nepal
+# Apiary-site suitability for *Apis cerana* in Kavrepalanchowk, Nepal
 
-An end-to-end Python workflow utilizing **Analytical Hierarchy Process (AHP)** and **Weighted Overlay Analysis (WOA)** to evaluate and map spatial suitability for beehives (apiculture) at 10-meter resolution in Kavrepalanchowk District, Nepal.
+Code and data for the paper **"[Manuscript title]"** ([Authors], submitted to *Agriculture*, MDPI).
+A GIS multi-criteria model of eight criteria on one 10 m grid (13,926,106 cells; 1,392.61 km²), with criterion weights
+pooled from 13 published apiary-suitability studies. The output is a relative landscape-suitability index for
+planning within the district, not a prediction of apiary presence or productivity.
 
----
+**Tested with three aggregation models.** The main weighted linear combination (WLC) was recomputed independently
+(0 cells differ) and compared with a weighted product model (WPM) and TOPSIS, all with the same criteria and weights.
+See [docs/MODEL_TESTING.md](docs/MODEL_TESTING.md).
 
-## 📌 Project Overview
+| Result | Value |
+|---|---|
+| High + Very High relative suitability (WLC) | 87.08% (1,212.62 km²) |
+| Same class in ≥ 90% of 78 weight scenarios | 82.5% of the district |
+| Agreement with WLC: TOPSIS / WPM | 84.24% (κ 0.747) / 57.93% (κ 0.518) |
+| Documented apiaries in High/Very High (descriptive overlay, no test) | 2 of 7 (WLC, TOPSIS); 1 of 7 (WPM) |
 
-This repository hosts a multi-criteria GIS evaluation system that standardizes and overlaps **10 environmental, physical, and socio-economic criteria** to locate optimal beekeeping sites. The workflow handles projection alignments, raster standardizations, boundary masking, weighted overlay calculations, and ground-truth validation overlay.
+## Repository layout
 
-### 📐 AHP Criteria and Weights ($CR = 0.0325$)
-The pairwise comparison matrix yields a **Consistency Ratio (CR) of 0.0325**, which is well below the standard consistency threshold of $0.10$, indicating a highly consistent and mathematically valid criteria weighting.
-
-| Rank | Criterion | Weight | Description / Sub-Class Rating Notes |
-| :---: | :--- | :---: | :--- |
-| **1** | **LULC** | **27.56%** | Land Use Land Cover (Agricultural/Forest zones highly favored) |
-| **2** | **NDVI** | **19.41%** | Vegetation density and floral resources index (clipped to range: -0.3357 to 0.8905) |
-| **3** | **Forest Cover** | **15.48%** | Percentage density of forest cover (scaled to 0-100%) |
-| **4** | **Temperature** | **11.47%** | Equal-interval temperature classification (18.66°C to 22.74°C) |
-| **5** | **Rainfall** | **8.22%** | Equal-interval average rainfall classification (1292.5 mm to 1478.8 mm) |
-| **6** | **River Distance** | **5.93%** | Proximity to water sources (standardized 1 to 9 scale) |
-| **7** | **Elevation** | **4.45%** | Altitude ranges (optimal elevation: 1000m - 1500m rated 9) |
-| **8** | **Slope** | **3.32%** | Terrain slope angle (gentler slopes 0-5° rated 9) |
-| **9** | **Aspect** | **2.38%** | Sun-facing direction (south/south-east aspects highly rated) |
-| **10** | **Road Distance** | **1.77%** | Transport network proximity (standardized 1 to 9 scale) |
-
----
-
-## 📂 Repository Structure
-
-```text
-AHP using python/
-│
-├── README.md                           # Project Documentation
-├── AHP_Beehive_Suitability_Visible_Validation_Numbering_Code.ipynb # Original monolithic workflow
-│
-├── data/                               # Input & Output GIS files
-│   ├── 1_criterion_data/               # Place raw input Geotiffs and Kavre.shp here
-│   ├── 2_ahp_map/                      # Generated criterion maps (1-9 scales)
-│   └── 3_validation_map/               # Final 5-Class map exports & validation logs
-│
-├── src/                                # Modular core Python scripts
-│   ├── __init__.py
-│   ├── config.py                       # Hardcoded constants, paths, validation points, & weights
-│   ├── alignment.py                    # Spatial reprojections, alignments, and study area masks
-│   ├── reclassification.py            # Reclassification engine (standardizing to 1-9 ratings)
-│   ├── overlay.py                      # Multi-criteria weighted overlay calculations
-│   └── validation_plot.py              # Unique validation site resolution and map plotting
-│
-└── notebooks/                          # Interactive divided notebooks for explanation
-    ├── Part1_Setup_Alignment.ipynb     # Step 1: Loading, aligning, and masking datasets
-    ├── Part2_Reclassification.ipynb    # Step 2: Running reclassification rules & distribution checks
-    ├── Part3_Weighted_Overlay.ipynb    # Step 3: Computing suitability overlay & exporting GeoTIFFs
-    └── Part4_Validation_Visualization.ipynb # Step 4: Validating map with ground-truth & plotting
+```
+apiary_mcda/            Python package
+  models/wlc.py         weighted linear combination (main model)
+  models/wpm.py         weighted product model
+  models/topsis.py      TOPSIS with fixed ideal (9) and anti-ideal (1)
+  classify.py           fixed 1-9 class breaks, weighted kappa
+  io.py                 load standardised rasters on one mask
+scripts/
+  01_pool_weights.py    pool published weights (log-linear model, bootstrap, leave-one-out)
+  02_prep_layers.py     align and score raw layers to 1-9; convert apiary coordinates
+  03_run_main.py        main WLC run, 78 sensitivity scenarios, stability, class areas, manifest
+  04_compare_models.py  independent WLC recompute + WPM + TOPSIS comparison
+  05_make_figures.py    Figures 4-10 (maps and charts)
+  05b_make_flowchart.py Figure 3 (workflow)
+  06_verify.py          checks a fresh run against results/expected_results.json
+gee/                    Google Earth Engine scripts that build every layer
+config/                 weights and file lists (main run: MERIT Hydro streams; robustness run: OSM waterways)
+data/standardised/      1-9 criterion rasters, EPSG:32645, 10 m (0 = NoData); PREC = WorldClim 1960-1990,
+                        PREC_CHIRPS = CHIRPS 2020-2024 (precipitation sensitivity run only)
+data/points/            documented apiary locations (UTM 45N and lat/lon)
+data/literature/        study-by-study weights used for pooling
+tests/                  unit tests for the three models and the classifier
+docs/                   data sources and licences; model testing
+results/                expected numbers; reproduce.sh writes all outputs here
 ```
 
----
-
-## 🚀 Getting Started
-
-### 📋 Prerequisites & Installation
-
-To run this model on your local machine, install the required geospatial and plotting packages:
+## Reproduce
 
 ```bash
-pip install numpy pandas matplotlib rasterio geopandas
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+./reproduce.sh            # about 8 GB RAM; writes results/ and results/figures/, then runs the tests and the checks
 ```
 
-### ⚙️ How to Run
+`reproduce.sh` ends with `scripts/06_verify.py`, which prints PASS/FAIL for every reported number.
+To rebuild the input rasters from the original public data, run the scripts in `gee/` in the Earth Engine code
+editor (set your own asset IDs first), then score them with `scripts/02_prep_layers.py`.
 
-1. **Prepare Data**:
-   Place all 10 criterion Geotiff layers and the Kavre District shapefile inside `data/1_criterion_data/` as guided in [data/1_criterion_data/README.md](file:///c:/Users/Dell/Desktop/AHP%20using%20python/data/1_criterion_data/README.md).
-2. **Configure Run Mode**:
-   Open `src/config.py` and set `USE_COLAB_DEFAULTS = False` if running locally, or `True` if using Google Drive directories on Google Colab.
-3. **Execute Interactive Steps**:
-   Open the notebooks inside `notebooks/` sequentially to run, visualize, and validate each part of the workflow.
+## Data
 
----
+The standardised rasters are included here. The raw continuous layers, the stream-distance raster and all output rasters
+are archived on Zenodo: **[Zenodo DOI]**. Sources and licences: [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+The district boundary (GADM 4.1) is not redistributed; download it from https://gadm.org.
 
-## 🎯 Ground-Truth Map Validation & Renumbering
+## Citation
 
-When rendering validation data points on a final suitability map, some locations share exactly the same coordinates (e.g., duplicate coordinate records from the same farm cluster), leading to overlapping label annotations on matplotlib. 
+See `CITATION.cff`. Please cite the paper and the Zenodo archive.
 
-This workflow implements a **Unique Visible Map Locations Resolution**:
-1. Merges points sharing the same coordinate pixel using `src/validation_plot.py`.
-2. Renumbers the unique locations sequentially from `1` upwards.
-3. Preserves original point numbers inside the exported validation CSV log files under the field name `Original_Point_Nos`.
+## Licence
+
+Code: MIT (see `LICENSE`). Data in `data/`: see `docs/DATA_SOURCES.md`; the road and OSM-water rasters are derived from
+OpenStreetMap (© OpenStreetMap contributors, ODbL 1.0).

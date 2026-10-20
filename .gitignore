@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+results/main/
+results/osm_water/
+results/model_comparison/
+results/figures/
+results/pooled_weights.csv
+results/verification_report.txt

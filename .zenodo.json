@@ -1,0 +1,8 @@
+{
+  "title": "Apiary-site suitability for Apis cerana in Kavrepalanchowk, Nepal: code (WLC, WPM, TOPSIS) v1.0.0",
+  "upload_type": "software",
+  "description": "Python package and scripts for a GIS multi-criteria apiary-suitability model with literature-pooled weights, tested with three aggregation models (WLC, weighted product, TOPSIS), an independent recomputation, unit tests and a verification script.",
+  "creators": [{"name": "[Family name, Given name]", "affiliation": "[Affiliation]"}],
+  "license": "MIT",
+  "keywords": ["apiary suitability", "Apis cerana", "GIS", "MCDA", "WLC", "WPM", "TOPSIS", "Nepal"]
+}

@@ -5,7 +5,8 @@ version: 2.0.0
 date-released: "2026-10-20"
 license: MIT
 repository-code: "https://github.com/raaz0000002/Beehive-Suitability-of-Kavrepalanchowk"
-url: "https://zenodo.org/records/23490045"
+doi: "10.5281/zenodo.23491480"
+url: "https://doi.org/10.5281/zenodo.23491480"
 authors:
   - family-names: "Acharya"
     given-names: "Rajkumar"

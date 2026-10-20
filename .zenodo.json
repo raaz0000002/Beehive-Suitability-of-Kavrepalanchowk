@@ -11,6 +11,6 @@
     {"name": "Gyawali, Buddhi", "affiliation": "Kentucky State University"}
   ],
   "license": "MIT",
-  "related_identifiers": [{"identifier": "https://zenodo.org/records/23490045", "relation": "isSupplementedBy", "resource_type": "dataset"}],
+  "related_identifiers": [{"identifier": "10.5281/zenodo.23491480", "relation": "isSupplementedBy", "resource_type": "dataset"}],
   "keywords": ["landscape suitability", "beekeeping", "Apis cerana", "GIS", "MCDA", "WLC", "WPM", "TOPSIS", "Nepal"]
 }

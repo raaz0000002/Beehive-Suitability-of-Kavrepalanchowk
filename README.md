@@ -43,7 +43,8 @@ data/standardised/      1-9 criterion rasters, EPSG:32645, 10 m (0 or -9999 = No
                         and *_WC1960_1990 = WorldClim 1960-1990 (sensitivity scenarios only)
 raw/                    climate exports from gee/05_climate_1991_2020.js on their native grids
 data/points/            documented beekeeping locations (UTM 45N and lat/lon)
-data/literature/        study-by-study weights used for pooling
+data/literature/        study-by-study weights used for pooling (evidence_weights.csv) and the reading list of
+                        candidate studies from the literature search (Apiary_Literature_Reading_List.xlsx)
 tests/                  unit tests for the three models and the classifier
 docs/                   data sources and licences; model testing
 results/                expected numbers; reproduce.sh writes all outputs here
@@ -68,9 +69,9 @@ python scripts/02_prep_layers.py climate --src raw/clim_1991_2020_main_wcgrid.ti
 
 ## Data
 
-The standardised rasters and the small climate exports are included here. The raw continuous layers, the 10 m climate
-rasters, the stream-distance raster and all output rasters are archived on Zenodo: https://zenodo.org/records/23490045
-(use the "Cite all versions" DOI shown on that page). Sources and licences: [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+The standardised rasters and the small climate exports are included here. The raw input layers are archived on Zenodo
+(version 1.0.0, https://doi.org/10.5281/zenodo.23490045) and the 10 m climate layers, all output rasters and tables and a
+code snapshot in version 2 (https://doi.org/10.5281/zenodo.23491480). Sources and licences: [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 The district boundary used for the analysis (GADM 4.1) is not redistributed; download it from https://gadm.org.
 
 ## Citation
